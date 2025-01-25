@@ -1,0 +1,3 @@
+javac -d . Wezel.java && \
+jar cfm Wezel.jar manifest.txt recycling/*.class && \
+java -jar Wezel.jar
