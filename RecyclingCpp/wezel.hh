@@ -5,11 +5,14 @@
 #include <memory>
 
 class Wezel {
+private:
+    std::string name;
+    std::weak_ptr<Wezel> link;
 public:
-    std::weak_ptr<Wezel> prev;
-    std::shared_ptr<Wezel> next;
     Wezel();
-    void dodaj_polaczenie(Wezel w);
+    Wezel(std::string name);
+    std::string display(unsigned depth);
+    void add_link(std::shared_ptr<Wezel> &other);
     ~Wezel();
 };
 

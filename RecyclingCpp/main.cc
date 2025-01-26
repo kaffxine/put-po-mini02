@@ -46,11 +46,11 @@ int main() {
     for (unsigned i = 0; i < 12; i++) {
         std::shared_ptr<Wezel> w1 = std::make_shared<Wezel>();
         std::shared_ptr<Wezel> w2 = std::make_shared<Wezel>();
-        // w1->next = w2;
-        // w2->next = w1;
+        // w1->add_link(w2);
+        // w2->add_link(w1);
     }
-    // Dla tego przypadku, klasa Wezel ma publiczny atrybut
-    // std::shared_ptr<Wezel> next. Gdy odkomentujemy dwie
+    // Dla tego przypadku, klasa Wezel ma prywatny atrybut
+    // std::shared_ptr<Wezel> link. Gdy odkomentujemy dwie
     // dolne linijki w pętli, pamięć nie zostanie zwolniona
     // poprawnie, gdyż std::shared_ptr zwalnia się dopiero
     // wtedy, gdy jego licznik referencji osiągnie zero. Podczas
@@ -62,29 +62,20 @@ int main() {
     // z wyjątkiem tego, że nie zwiększa on licznika referencji
     // obiektu, na który wskazuje (jeśli jest to std::shared_ptr).
     //
-    // Możemy zmodyfikować naszą klasę Wezel tak, aby oprócz pola
-    // std::shared_ptr<Wezel> next, miała również
-    // std::weak_ptr<Wezel> prev.
+    // Możemy zmodyfikować naszą klasę Wezel tak, aby zamiast pola
+    // std::shared_ptr<Wezel> link, miała std::weak_ptr<Wezel> link.
     //
-    for (unsigned i = 0; i < 12; i++) {
-        std::shared_ptr<Wezel> w1 = std::make_shared<Wezel>();
-        std::shared_ptr<Wezel> w2 = std::make_shared<Wezel>();
-        w1->prev = w2;
-        w2->next = w1;
+    for (unsigned depth = 0; depth < 12; depth++) {
+        std::shared_ptr<Wezel> w1 = std::make_shared<Wezel>("Arkadiusz");
+        std::shared_ptr<Wezel> w2 = std::make_shared<Wezel>("Barkadiusz");
+        
+        w1->add_link(w2);
+        w2->add_link(w1);
+        std::cout << "w1: " << w1->display(depth) << std::endl;
+        std::cout << "w2: " << w2->display(depth) << std::endl;
     }
-    // Zwróćmy uwagę na to, że w pliku main zmieniliśmy jedynie
-    // 'next' na 'prev' i wszystko działa. To dzięki temu, że
-    // Konstruktor std::weak_ptr(std::shared_ptr) jest
-    // automatycznie wywoływany dla przypisania obiektu typu
-    // std::shared_ptr do obiektu typu std::weak_ptr, o ile
-    // taki konstruktor oczywiście istnieje.
-    //
-    // W tym przypadku, najpierw jest zwalniany w2, ponieważ
-    // jego licznik referencji wynosi 0 (std::weak_ptr go
-    // nie zwiększa). Skoro w2 jest już zwolnione, to nie
-    // ma też już żadnych referencji do w1, więc jego licznik
-    // referencji również wynosi zero. Wszystko działa jak
-    // w zegarku.
+    // Po zmianie typu artybutu link na std::weak_ptr<Wezel>, cykl
+    // referencji już nie zachodzi, a pamięć jest zwalniana poprawnie.
 
     return 0;
 }
