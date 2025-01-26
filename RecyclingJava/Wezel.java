@@ -1,36 +1,35 @@
 package recycling;
 
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.Objects;
 
-public class Wezel {
-    private ArrayList<Wezel> polaczenie;
+// Abstrakcyjna klasa Wezel, z której będą dziedziczyć implementacje
+// dla ArrayList, HashMap i TreeMap. Zdefiniowanie tej bazowej klasy
+// pozwala nam "łączyć" ze sobą wiele typów węzłów, na przykład
+// WezelArrayList będzie mógł mieć w swoich połączeniach
+// WezelTreeMap, albo WezelHashMap. Konkretne implementacje
+// można znaleźć w osobnych plikach.
+public abstract class Wezel implements Comparable<Wezel> {
+    private static final ThreadLocalRandom RNG = ThreadLocalRandom.current();
+    protected int hash;
 
-    public Wezel() {
-        // ArrayList jest potrzebny, aby dynamicznie
-        // zmieniać ilość połączeń w czasie działania programu,
-        // bez zbędnej alokacji pamięci, ani sztywnych limitów
-        // co do ilości połączeń.
-        //
-        // Moglibyśmy użyć również HashMap<Wezel, bool>, aby
-        // zredukować czas sprawdzania czy węzeł w1 jest w
-        // liście połączeń węzła w2 z O(n) do O(1), kosztem
-        // większego zużycia pamięci (i dłuższego czasu dostępu
-        // dla bardzo małej ilości węzłów). Mamy do dyspozycji
-        // również TreeMap<Wezel, bool> wykorzystującą drzewa
-        // czerwono-czarne, z czasem sprawdzania O(log(n)). Nie
-        // sądzę jednak, żeby była to dobra alternatywa, ponieważ
-        // główną zaletą drzewnej mapy jest jej własność, która
-        // gwarantuje utrzymanie jej elementów w posortowanej
-        // kolejności, co czasem umożliwia znaczące przyspieszenie
-        // algorytmów, a w tej sytuacji jest to bezużyteczne, a
-        // zarówno czas dostępu jak i zużycie pamięci jest
-        // zapewne mniej korzystne niż w przypadku haszowej mapy.
-        this.polaczenie = new ArrayList<>();
+    protected Wezel() {
+        this.hash = java.util.Objects.hash(RNG.nextInt(), System.nanoTime());
     }
 
-    public void dodajPolaczenie(Wezel w) {
-        this.polaczenie.add(w);
+    public abstract void dodajPolaczenie(Wezel w);
+    public abstract ArrayList<Wezel> getPolaczenia();
+    public abstract String podsumowanie();
+    public abstract int size();
+
+    @Override
+    public int compareTo(Wezel other) {
+        int sizeComparison = Integer.compare(this.size(), other.size());
+        if (sizeComparison == 0) {
+            return hashComparison = Integer.compare(this.hash, other.hash);
+        }
+        return sizeComparison;
     }
 
     @Deprecated
@@ -40,27 +39,12 @@ public class Wezel {
         super.finalize();
     }
 
-    public static void main(String[] args) {
-        Scanner s = new Scanner(System.in);
-
-        // Do około 300'000 iteracji, JVM nie zwalnia pamięci
-        // w trakcie działania programu, więc nie widzimy
-        // żadnych komunikatów "Finalizowanie_obiektu". Gdy
-        // przekroczymy tę liczbę, JVM nagle zdaje sobie sprawę,
-        // jaki się zrobił syf w pamięci, i zaczyna czyścić, ale
-        // nadal tylko około 1/3 obiektów zostaje zwalniana
-        // podczas działania programu.
-        //
-        // Po zaimplementowaniu ArrayList i tworzeniu dwóch
-        // wzajemnie połączanych węzłów w pętli, potrzebujemy
-        // jedynie około 50'000 iteracji, aby obudzić GC.
-        for (int i = 0; i <= 50000; i++) {
-            Wezel w1 = new Wezel();
-            Wezel w2 = new Wezel();
-            w1.dodajPolaczenie(w2);
-            w2.dodajPolaczenie(w1);
+    public void wyswietlPolaczenia() {
+        String output = this.podsumowanie() + ":";
+        for (Wezel w : this.getPolaczenia()) {
+            output += "\n  [" + w.podsumowanie() + "]";
         }
-        s.nextLine();
-        s.close();
+        System.out.println(output);
     }
+
 }
